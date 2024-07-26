@@ -15,9 +15,14 @@ app.get("/", (req, res) => {
 });
 //provide middle ware
 app.use(express.json());
+//middle ware for creating user
 app.use("/api", require("./Routes/createuser.js"));
+//middle ware to get data
+app.use("/api",require("./Routes/displaydata.js"))
 
 app.listen(port, () => {
   connect();
+console.log("going show",global.food_items)
+
   console.log(`server is created,${port}`);
 });
