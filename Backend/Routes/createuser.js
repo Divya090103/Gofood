@@ -49,10 +49,10 @@ routes.post("/log_in", async (req, res) => {
     let getuser = await user.findOne({ name: username });
     // console.log(usermail);
     if (!getuser) {
-      return res.status(400).json("put correct mail");
+      return res.status(400).json("put correct username");
     }
     const compare = await Bcrypt.compare(req.body.password, getuser.password);
-    if (!compare) return res.status(400).json("put correct mail");
+    if (!compare) return res.status(400).json("put correct password");
 
     const data = {
       User: {
