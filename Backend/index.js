@@ -1,6 +1,7 @@
 const express = require("express");
+require('dotenv').config();
+
 const app = express();
-const port = 5000;
 const cors = require("cors");
 const connect = require("./database/db.js");
 app.use(
@@ -19,10 +20,12 @@ app.use(express.json());
 app.use("/api", require("./Routes/createuser.js"));
 //middle ware to get data
 app.use("/api",require("./Routes/displaydata.js"))
-
-app.listen(port, () => {
+// app.use("/api",require("./Routes/userorder.js"))
+//send mail fior verification
+// app.use("/send")
+app.listen(process.env.port, () => {
   connect();
 console.log("going show",global.food_items)
 
-  console.log(`server is created,${port}`);
+  console.log("server is created");
 });

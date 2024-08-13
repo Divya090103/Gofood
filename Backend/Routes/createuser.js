@@ -6,7 +6,9 @@ const user = require("../models/User");
 //Bcrypt use for encode the password on the server
 const Bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const jsonSecret = "forauthentication";
+//get verfication function
+const sendVerificationEmail = require("./nodemailer");
+
 const { body, validationResult } = require("express-validator");
 routes.post(
   "/createuser",
@@ -18,26 +20,72 @@ routes.post(
     body("password").isLength({ min: 5 }),
   ],
   async (req, res) => {
+    console.log(req.body);
     const result = validationResult(req);
     if (!result.isEmpty()) {
       console.log("result is emty");
       return res.status(400).json({ result: result.array() });
     }
     try {
-      console.log("going to try");
-      //addition charac add to password make it secure
-      const salt = await Bcrypt.genSalt(10);
-      const newpasswors = await Bcrypt.hash(req.body.password, salt);
-      await user.create({
-        name: req.body.name,
-        Location: req.body.Location,
-        phone_num: req.body.phone_num,
-        email: req.body.email,
-        password: newpasswors,
-      });
-      return res.json({ success: true });
+      //check if the mail is already present or not
+      console.log("send the mail request");
+      const mail = req.body.email;
+      const result = await user.findOne({ email: mail });
+      if (result) {
+        return res.status(400).json({
+          success: false,
+          message: "already present user with that mail id",
+        });
+      } else {
+        console.log("going to try");
+        //addition charac add to password make it secure
+        const salt = await Bcrypt.genSalt(10);
+        const newpasswors = await Bcrypt.hash(req.body.password, salt);
+        console.log("change in bcrypt completed");
+        //create a user using model
+
+        console.log("user model creation");
+        function generateVerificationToken(user) {
+          console.log("generate tokem");
+          return jwt.sign({ id: user.phone_num }, process.env.jsonSecretkey, {
+            expiresIn: "1h",
+          });
+        }
+        //send mail to verified using nodemailer
+        //npm i nodemailer
+        //we use Smtp server which given by Ethereal
+        const User = req.body;
+        const token = generateVerificationToken(User);
+        console.log("send the mail verification function");
+        const sendmail = sendVerificationEmail(User, token); //send mail
+        const newuser = {
+          //create a user
+          name: req.body.name,
+          Location: req.body.Location,
+          phone_num: req.body.phone_num,
+          email: req.body.email,
+          password: newpasswors,
+        };
+        if (sendmail) {
+          //send the to port where check the verification
+          await user.create({
+            ...newuser,
+            verified: false,
+          });
+          console.log("going to redirect");
+          return res.json({
+            success: true,
+            message: "verfication mail sent successfully",
+          });
+        } else
+          return res.json({
+            success: true,
+            message: "message is not verified yet",
+          });
+      }
     } catch (e) {
-      return res.json({ success: false });
+      console.log("error in create user");
+      return res.json({ success: false, message: "catch error" });
     }
   }
 );
@@ -53,18 +101,27 @@ routes.post("/log_in", async (req, res) => {
     }
     const compare = await Bcrypt.compare(req.body.password, getuser.password);
     if (!compare) return res.status(400).json("put correct password");
-
+    console.log(compare);
+    console.log(getuser);
     const data = {
       User: {
-        id: getuser.id,
+        id: getuser._id, // Use the user’s ID from the database
       },
     };
-    const jwttoken=jwt.sign(data,jsonSecret);
-    return res.json({ success: true, usercontent: user ,authorizetoken:jwttoken});
+    const jwttoken = jwt.sign(data, process.env.jsonSecret);
+
+    return res.json({
+      success: true,
+      usercontent: user,
+      authorizetoken: jwttoken,
+      user: getuser,
+    });
   } catch (e) {
+    console.log("erroe during log in", e);
     return res.json({ success: false, message: "not found" });
   }
 });
+
 module.exports = routes;
 
 // jwt (JSONWEB TOKEN):It gives the authorization that once the user login in,each subsequent request of jwt allowing ther user to access the routes ,services that are permitted with that token

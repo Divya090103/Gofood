@@ -20,6 +20,11 @@ const Userschema= new Schema({
   password:{
     type:String,
     required:true
+  },
+  verified:{
+    type:Boolean,
+    required:true
   }
+  
 })
 module.exports=mongoose.model('user',Userschema);
