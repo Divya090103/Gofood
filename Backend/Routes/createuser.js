@@ -90,38 +90,40 @@ routes.post(
   }
 );
 
-//find user
-routes.post("/log_in", async (req, res) => {
-  try {
-    let username = req.body.name;
-    let getuser = await user.findOne({ name: username });
-    // console.log(usermail);
-    if (!getuser) {
-      return res.status(400).json("put correct username");
-    }
-    const compare = await Bcrypt.compare(req.body.password, getuser.password);
-    if (!compare) return res.status(400).json("put correct password");
-    console.log(compare);
-    console.log(getuser);
-    const data = {
-      User: {
-        id: getuser._id, // Use the user’s ID from the database
-      },
-    };
-    const jwttoken = jwt.sign(data, process.env.jsonSecret);
-
-    return res.json({
-      success: true,
-      usercontent: user,
-      authorizetoken: jwttoken,
-      user: getuser,
+//log in user
+    routes.post("/log_in", async (req, res) => {
+      try {
+        let username = req.body.name;
+        let getuser = await user.findOne({ name: username });
+        // console.log(usermail);
+        if (!getuser) {
+          return res.status(400).json("put correct username");
+        }
+        const compare = await Bcrypt.compare(
+          req.body.password,
+          getuser.password
+        );
+        if (!compare) return res.status(400).json("put correct password");
+        const data = {
+          User: {
+            id: getuser._id, // Use the user’s ID from the database
+          },
+        };
+        const jwttoken = jwt.sign(data, process.env.jsonSecret);
+    // Fetch previous orders for the user
+        return res.json({
+          success: true,
+          usercontent: user,
+          authorizetoken: jwttoken,
+          user: getuser,
+        });
+      } catch (e) {
+        console.log("erroe during log in", e);
+        return res.json({ success: false, message: "not found" });
+      }
     });
-  } catch (e) {
-    console.log("erroe during log in", e);
-    return res.json({ success: false, message: "not found" });
-  }
-});
 
+    
 module.exports = routes;
 
 // jwt (JSONWEB TOKEN):It gives the authorization that once the user login in,each subsequent request of jwt allowing ther user to access the routes ,services that are permitted with that token

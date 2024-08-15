@@ -20,9 +20,11 @@ app.use(express.json());
 app.use("/api", require("./Routes/createuser.js"));
 //middle ware to get data
 app.use("/api",require("./Routes/displaydata.js"))
-// app.use("/api",require("./Routes/userorder.js"))
+//middle ware to post the check out data
+app.use("/api",require("./Routes/ALL_orders.js"))
+//middleware to get the all the ordered data
+app.use("/api",require("./Routes/getorder.js"))
 //send mail fior verification
-// app.use("/send")
 app.listen(process.env.port, () => {
   connect();
 console.log("going show",global.food_items)
