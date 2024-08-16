@@ -20,6 +20,10 @@ app.use(express.json());
 app.use("/api", require("./Routes/createuser.js"));
 //middle ware to get data
 app.use("/api",require("./Routes/displaydata.js"))
+//middle ware to check the token is authorize or not
+app.use("/api",require("./Routes/authorize.js"))
+//middle ware to verify the mail of the user
+app.use("/api",require("./Routes/verify.js"))
 //middle ware to post the check out data
 app.use("/api",require("./Routes/ALL_orders.js"))
 //middleware to get the all the ordered data

@@ -24,6 +24,10 @@ const Userschema= new Schema({
   verified:{
     type:Boolean,
     required:true
+  },
+  JwtToken:{
+    type:String,
+    required:true,
   }
   
 })

@@ -30,8 +30,10 @@ routes.post(
       //check if the mail is already present or not
       console.log("send the mail request");
       const mail = req.body.email;
+      const name =req.body.name;
       const result = await user.findOne({ email: mail });
-      if (result) {
+      const reslt=await user.findOne({name:name})
+      if (result||reslt) {
         return res.status(400).json({
           success: false,
           message: "already present user with that mail id",
@@ -43,17 +45,17 @@ routes.post(
         const newpasswors = await Bcrypt.hash(req.body.password, salt);
         console.log("change in bcrypt completed");
         //create a user using model
-
-        console.log("user model creation");
-        function generateVerificationToken(user) {
-          console.log("generate tokem");
-          return jwt.sign({ id: user.phone_num }, process.env.jsonSecretkey, {
-            expiresIn: "1h",
-          });
-        }
         //send mail to verified using nodemailer
         //npm i nodemailer
         //we use Smtp server which given by Ethereal
+        console.log("user model creation");
+        function generateVerificationToken(user) {
+          console.log("generate tokem");
+          return jwt.sign({ id: user.phone_num }, process.env.jsonSecret, {
+            expiresIn: "1h",
+          });
+        }
+       
         const User = req.body;
         const token = generateVerificationToken(User);
         console.log("send the mail verification function");
@@ -65,6 +67,7 @@ routes.post(
           phone_num: req.body.phone_num,
           email: req.body.email,
           password: newpasswors,
+          JwtToken:token
         };
         if (sendmail) {
           //send the to port where check the verification
@@ -104,19 +107,23 @@ routes.post(
           getuser.password
         );
         if (!compare) return res.status(400).json("put correct password");
-        const data = {
-          User: {
-            id: getuser._id, // Use the user’s ID from the database
-          },
-        };
-        const jwttoken = jwt.sign(data, process.env.jsonSecret);
+        // const data = {
+        //   User: {
+        //     id: getuser._id, // Use the user’s ID from the database
+        //   },
+        // };
+        console.log(getuser);
+        if(getuser.verified){
     // Fetch previous orders for the user
         return res.json({
           success: true,
-          usercontent: user,
-          authorizetoken: jwttoken,
+          // usercontent: user,
           user: getuser,
         });
+      }else return res.json({
+        success:false,
+        message:"not verified user yet"
+      })
       } catch (e) {
         console.log("erroe during log in", e);
         return res.json({ success: false, message: "not found" });
