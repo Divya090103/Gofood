@@ -94,6 +94,6 @@ cd ../frontend
 npm install
 npm start
 App runs at: http://localhost:3000
-
+🙋‍♀️ About the Developer
 Made with ❤️ by Divya Agarwal
 GitHub | LinkedIn | LeetCode
